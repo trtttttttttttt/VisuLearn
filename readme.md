@@ -1,6 +1,6 @@
 ## Inspiration
 
-Having been a student during COVID-19 for the past 8-months, I can tell you that digital education has not evolved to the point where students can effectively learn. For nearly all of our university classes, professors utilize PowerPoint as if it is the only option around. Even my younger brother in high school and younger cousin in middle school learn through PowerPoint.
+Having been a student during COVID-19 for the past 8-months, I can tell you that digital education has not evolved to the point where students can effectively learn. For nearly all of our  classes, teachers utilize PowerPoint as if it is the only option around. Even my younger brother in elementary school learns through PowerPoint.
 
 For HackGSU, we wanted to create a novel way to brings back that excitement associated with learning. That's how we came up with VisuLearn, a Tensorflow.js based gesture recognition interface that brings augmented reality to digital classrooms with a simple, and user friendly interface.
 
@@ -28,3 +28,7 @@ We learned a lot about the Handpose Tensorflow.js model, virtual camera systems,
 ## What's next for VisuLearn
 
 There is definitely room for improvement for VisuLearn. I think one of the most immediate things that we can do is program our own virtual camera system to remove dependence on OBS. However, this would have likely taken longer to implement than time we had available for this hackathon. Additionally, we want to add more gesture recognition functions to our algorithm in order to increase the customizability of this program even further.
+
+## Links to try the project out
+
+https://visulearn-final.rishabhsahoo.repl.co/
