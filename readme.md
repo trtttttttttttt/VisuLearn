@@ -2,7 +2,7 @@
 
 Having been a student during COVID-19 for the past 8-months, I can tell you that digital education has not evolved to the point where students can effectively learn. For nearly all of our  classes, teachers utilize PowerPoint as if it is the only option around. Even my younger brother in elementary school learns through PowerPoint.
 
-For HackGSU, we wanted to create a novel way to brings back that excitement associated with learning. That's how we came up with VisuLearn, a Tensorflow.js based gesture recognition interface that brings augmented reality to digital classrooms with a simple, and user friendly interface.
+For Qode Internet Fest, we wanted to create a novel way to brings back that excitement associated with learning. That's how we came up with VisuLearn, a Tensorflow.js based gesture recognition interface that brings augmented reality to digital classrooms with a simple, and user friendly interface.
 
 ## What it does
 
