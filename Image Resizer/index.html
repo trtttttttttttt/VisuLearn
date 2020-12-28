@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Image Resize Demo</title>
+<style>
+canvas{
+	border:1px solid #cccccc;
+	/* disable antialiasing */
+	image-rendering: optimizeSpeed;             /* Older versions of FF          */
+	image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+	image-rendering: -webkit-optimize-contrast; /* Safari                        */
+	image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+	image-rendering: pixelated;                 /* Awesome future-browsers       */
+	-ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+}
+
+.left{
+    width:19%;float:left;display:block;margin-right:1%;
+}
+.right{
+    width:80%;float:left;display:block;
+}
+
+@media (max-width: 700px) {
+    .left{
+        width:100%;clear:both;display:block;
+    }
+    .right{
+        width:100%;clear:both;display:block;
+    }
+}
+
+</style>
+<script>
+function download() {
+var download = document.getElementById("download");
+var imageDL = document.getElementById("cc").toDataURL("image/png")
+    .replace("image/png", "image/octet-stream");
+download.setAttribute("href", imageDL);
+//download.setAttribute("download","archive.png");
+}
+</script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.4.3.min.js"></script>
+<script>
+//image path
+var path = 'WEUP-iamgeresizerFinal.png';
+
+</script>
+<script src="hermite.js"></script>
+</head>
+<body>
+<div class="left">
+<h1 style="color:red;">Upload Your Image Below</h1>
+<input type="file" id="imageLoader" name="imageLoader" />
+<br />
+<br />
+<br>
+<a id="download" download="triangle.png">
+<button type="button" style="width:100%;margin-top:1em;background:gold;" onClick="download()">Download</button>
+</a>
+<h2 style="margin: 5px 0px;">Customize Size</h2>
+<br>
+Force Resize:
+<p>
+<input id="chooseSizeWidth" type="number">
+x
+<input id="chooseSizeHeight" type="number">
+</p>
+<button onclick="forceResize();">Force Resize Now</button>
+  <p>
+Streth to Fit:
+<button onclick="pixelResize(1600,1600);">1600 x 1600</button>
+<button onclick="pixelResize(1080,1080);">1080 x 1080</button>
+<button onclick="pixelResize(800,800);">800 x 800</button>
+<button onclick="pixelResize(400,400);">400 x 400</button>
+<button onclick="pixelResize(1200,280);">1200 x 280</button>
+</p>
+<h2 style="margin: 5px 0px;">Make Photo Larger By Percent</h2>
+<button onclick="resize(300);">300%</button>
+<button onclick="resize(100);">100%</button>
+<button onclick="resize(77);">77%</button>
+<button onclick="resize(40);">40%</button>
+<button onclick="resize(20);">20%</button>
+<br>
+
+<input id="slider" value="100" min="1" max="700" step="1" oninput="resize(this.value, true);" type="range">
+<br>
+<span style="margin-right:10px;" id="slider_value">-</span>
+<label><input type="checkbox" id="workers" value="1"> Make Faster (takes more memory)<span id="cores" style="display:none;"></span></label>
+<span style="margin-left:30px;display:none;">
+Resized in: <span id="timer" style="font-weight:bold;">-</span> s
+</span>
+</div>
+<div class="right">
+<br /><br />
+<b>Real Time Manipulation Area</b><br />
+<canvas id="cc"></canvas>
+</div> 
+<script>
+
+// save button
+  // var link = document.getElementById('link');
+  // link.setAttribute('download', 'MintyPaper.png');
+  // link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+  // link.click();
+
+//globals
+var HERMITE = new Hermite_class();
+var canvas = document.getElementById("cc");
+var ctx = canvas.getContext("2d");
+var img_w;
+var img_h;
+var current_size = false;
+
+// initial img set up
+var img = new Image();
+img.crossOrigin = "Anonymous"; //cors support
+
+img.onload = function(){
+    //no
+	console.log("does img.onload fire whenever canvas changes");
+    draw_image();
+	
+	var resize_size = 100; //1-100
+	
+	//resize
+	resize(resize_size);
+	setSlider(resize_size);
+};
+
+img.src = path;
+
+
+function draw_image(){
+    console.log("draw_image, image now:");
+    console.log(img);
+
+	img_w = img.width;
+	img_h = img.height;
+
+	//prepare canvas
+	canvas.width = img_w;
+	canvas.height = img_h;
+	ctx.clearRect(0, 0, img_w, img_h);
+	
+	//draw image
+	ctx.drawImage(img, 0, 0);
+}
+
+function setSlider(value){
+	document.getElementById('slider').value = value;
+}
+
+function forceResize(){
+
+    var wid = parseInt($('#chooseSizeWidth').val());
+    var hei = parseInt($('#chooseSizeHeight').val());
+    console.log(wid);
+    pixelResize(wid,hei);
+
+
+}
+
+//called first
+function resize(percentages, slider) {
+    // console.log("resize function called and canvas now");
+
+	if(slider === true && current_size == percentages){
+		//stop event from firing twice - firefix bug
+		return false;
+	}
+
+	current_size = percentages;
+
+	document.getElementById('slider_value').innerHTML = percentages+'%';
+	
+	var use_workers = document.getElementById('workers').checked;
+	var cores = HERMITE.getCores();
+	document.getElementById('cores').innerHTML = cores;
+	
+	var w =  Math.round(img_w * percentages / 100);
+	var h =  Math.round(img_h * percentages / 100);
+
+	//prepare canvas
+	canvas.width = img_w;
+	canvas.height = img_h;
+	ctx.drawImage(img, 0, 0); //draw image
+	
+	//resize
+	if(use_workers){
+		//multi-cpu version
+		HERMITE.resample(canvas, w, h, true, on_finish);
+	}		
+	else{
+		//1 cpu version
+		HERMITE.resample_single(canvas, w, h, true);
+		on_finish();
+	}
+}
+
+//called first
+function pixelResize(imageW,imageH) {
+    console.log("pixelPerf");
+    
+    var use_workers = document.getElementById('workers').checked;
+    var cores = HERMITE.getCores();
+    document.getElementById('cores').innerHTML = cores;
+    
+    var w =  imageW;
+    var h =  imageH;
+
+    //prepare canvas
+    canvas.width = img_w;
+    canvas.height = img_h;
+    ctx.drawImage(img, 0, 0); //draw image
+    
+    //resize
+    if(use_workers){
+        //multi-cpu version
+        HERMITE.resample(canvas, w, h, true, on_finish);
+    }       
+    else{
+        //1 cpu version
+        HERMITE.resample_single(canvas, w, h, true);
+        // on_finish();
+    }
+}
+
+
+// uploader set up
+var imageLoader = document.getElementById('imageLoader');
+    imageLoader.addEventListener('change', handleImage, false);
+
+function handleImage(e){
+
+    console.log("new image upload");
+    var reader = new FileReader();
+
+    reader.onload = function(event){
+    console.log("onload called");
+
+        img = new Image();
+        img.onload = function(){
+            console.log("new image upload onload fire");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            img_w = img.width;
+            img_h = img.height;
+            ctx.drawImage(img,0,0);
+            console.log(canvas);
+        }
+        console.log("new image upload past onload");
+
+        img.src = event.target.result;
+        canvas.width = img.width;
+        canvas.height = img.height;
+        console.log("call papa can you");
+        // papaCanYouHearMe();  
+
+    }
+    
+    reader.readAsDataURL(e.target.files[0]);     
+
+    // path = e.target.baseURI;
+    // console.log("path = " + path);   
+    // console.log(path); 
+
+
+}
+
+</script>
+</body>
+</html>
